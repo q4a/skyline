@@ -82,9 +82,10 @@ namespace skyline::signal {
         }
     }
 
-    void ExceptionalSignalHandler(int signal, siginfo *info, ucontext *context) {
+    void ExceptionalSignalHandler(int signal, siginfo *info, ucontext_t *context) {
         SignalException signalException;
         signalException.signal = signal;
+#ifdef __ANDROID__ // FIX_LINUX uc_mcontext .pc and .regs
         signalException.pc = reinterpret_cast<void *>(context->uc_mcontext.pc);
         if (signal == SIGSEGV)
             signalException.fault = info->si_addr;
@@ -98,6 +99,7 @@ namespace skyline::signal {
 
         SignalExceptionPtr = std::make_exception_ptr(signalException);
         context->uc_mcontext.pc = reinterpret_cast<u64>(&ExceptionThrow);
+#endif
 
         std::set_terminate(TerminateHandler);
 
@@ -155,7 +157,7 @@ namespace skyline::signal {
     thread_local std::array<SignalHandler, NSIG> ThreadSignalHandlers{};
 
     __attribute__((no_stack_protector)) // Stack protector stores data in TLS at the function epilogue and verifies it at the prolog, we cannot allow writes to guest TLS and may switch to an alternative TLS during the signal handler and have disabled the stack protector as a result
-    void ThreadSignalHandler(int signal, siginfo *info, ucontext *context) {
+    void ThreadSignalHandler(int signal, siginfo *info, ucontext_t *context) {
         void *tls{}; // The TLS value prior to being restored if it is
         if (TlsRestorer)
             tls = TlsRestorer();

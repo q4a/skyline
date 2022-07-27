@@ -3,8 +3,10 @@
 
 #pragma once
 
+#ifdef __ANDROID__ // FIX_LINUX
 #include <jni.h>
 #include <android/looper.h>
+#endif
 #include <common/trace.h>
 #include <kernel/types/KEvent.h>
 #include <services/hosbinder/GraphicBufferProducer.h>
@@ -23,7 +25,9 @@ namespace skyline::gpu {
 
         std::mutex mutex; //!< Synchronizes access to the surface objects
         std::condition_variable surfaceCondition; //!< Signalled when a valid Vulkan surface is available
+#ifdef __ANDROID__ // FIX_LINUX
         jobject jSurface{}; //!< The Java Surface object backing the ANativeWindow
+#endif
         ANativeWindow *window{}; //!< The backing Android Native Window for the surface we draw to, we keep this around to access private APIs not exposed via Vulkan
         service::hosbinder::AndroidRect windowCrop{}; //!< A rectangle with the bounds of the current crop performed on the image prior to presentation
         service::hosbinder::NativeWindowScalingMode windowScalingMode{service::hosbinder::NativeWindowScalingMode::ScaleToWindow}; //!< The mode in which the cropped image is scaled up to the surface
@@ -47,7 +51,9 @@ namespace skyline::gpu {
         perfetto::Track presentationTrack; //!< Perfetto track used for presentation events
 
         std::thread choreographerThread; //!< A thread for signalling the V-Sync event and measure the refresh cycle duration using AChoreographer
+#ifdef __ANDROID__ // FIX_LINUX
         ALooper *choreographerLooper{};
+#endif
         i64 lastChoreographerTime{}; //!< The timestamp of the last invocation of Choreographer::doFrame
         i64 refreshCycleDuration{}; //!< The duration of a single refresh cycle for the display in nanoseconds
         bool choreographerStop{}; //!< If the Choreographer thread should stop on the next ALooper_wake()
@@ -77,7 +83,9 @@ namespace skyline::gpu {
         /**
          * @brief Replaces the underlying Android surface with a new one, it handles resetting the swapchain and such
          */
+#ifdef __ANDROID__ // FIX_LINUX
         void UpdateSurface(jobject newSurface);
+#endif
 
         /**
          * @brief Queue the supplied texture to be presented to the screen

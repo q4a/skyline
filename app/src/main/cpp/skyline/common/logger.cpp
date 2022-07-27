@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: MPL-2.0
 // Copyright © 2021 Skyline Team and Contributors (https://github.com/skyline-emu/)
 
+#ifdef __ANDROID__ // FIX_LINUX logging
 #include <android/log.h>
+#endif
 #include "utils.h"
 #include "logger.h"
 
@@ -47,6 +49,7 @@ namespace skyline {
         context = pContext;
     }
 
+#ifdef __ANDROID__ // FIX_LINUX logging
     void Logger::WriteAndroid(LogLevel level, const std::string &str) {
         constexpr std::array<int, 5> levelAlog{ANDROID_LOG_ERROR, ANDROID_LOG_WARN, ANDROID_LOG_INFO, ANDROID_LOG_DEBUG, ANDROID_LOG_VERBOSE}; // This corresponds to LogLevel and provides its equivalent for NDK Logging
         if (logTag.empty())
@@ -54,10 +57,13 @@ namespace skyline {
 
         __android_log_write(levelAlog[static_cast<u8>(level)], logTag.c_str(), str.c_str());
     }
+#endif
 
     void Logger::Write(LogLevel level, const std::string &str) {
         constexpr std::array<char, 5> levelCharacter{'E', 'W', 'I', 'D', 'V'}; // The LogLevel as written out to a file
+#ifdef __ANDROID__ // FIX_LINUX logging
         WriteAndroid(level, str);
+#endif
 
         if (context)
             // We use RS (\036) and GS (\035) as our delimiters

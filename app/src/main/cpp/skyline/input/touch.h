@@ -3,6 +3,7 @@
 
 #pragma once
 
+#ifdef __ANDROID__ // FIX_LINUX jni
 #include <jni.h>
 #include "shared_mem.h"
 
@@ -42,3 +43,4 @@ namespace skyline::input {
         void SetState(span<TouchScreenPoint> touchPoints);
     };
 }
+#endif

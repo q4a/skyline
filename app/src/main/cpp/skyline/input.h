@@ -22,7 +22,9 @@ namespace skyline::input {
         HidSharedMemory *hid; //!< A pointer to HID Shared Memory on the host
 
         NpadManager npad;
+#ifdef __ANDROID__ // FIX_LINUX jni
         TouchManager touch;
+#endif
 
         Input(const DeviceState &state)
             : state(state),
