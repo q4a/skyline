@@ -180,7 +180,11 @@ namespace skyline::signal {
 
         struct sigaction action{
             .sa_sigaction = reinterpret_cast<void (*)(int, siginfo *, void *)>(ThreadSignalHandler),
-            .sa_flags = SA_SIGINFO | SA_EXPOSE_TAGBITS | (syscallRestart ? SA_RESTART : 0) | SA_ONSTACK,
+            .sa_flags = SA_SIGINFO
+#ifdef __ANDROID__ // FIX_LINUX
+                    | SA_EXPOSE_TAGBITS
+#endif
+                    | (syscallRestart ? SA_RESTART : 0) | SA_ONSTACK,
         };
 
         for (int signal : signals) {
@@ -188,8 +192,14 @@ namespace skyline::signal {
                 struct sigaction oldAction;
                 Sigaction(signal, &action, &oldAction);
                 if (oldAction.sa_flags) {
+#ifdef __ANDROID__ // FIX_LINUX
                     oldAction.sa_flags &= ~SA_UNSUPPORTED; // Mask out kernel not supporting old sigaction() bits
-                    oldAction.sa_flags |= SA_SIGINFO | SA_EXPOSE_TAGBITS | SA_RESTART | SA_ONSTACK; // Intentionally ignore these flags for the comparison
+#endif
+                    oldAction.sa_flags |= SA_SIGINFO
+#ifdef __ANDROID__ // FIX_LINUX
+                    | SA_EXPOSE_TAGBITS
+#endif
+                    | SA_RESTART | SA_ONSTACK; // Intentionally ignore these flags for the comparison
                     if (oldAction.sa_flags != (action.sa_flags | SA_RESTART))
                         throw exception("Old sigaction flags aren't equivalent to the replaced signal: {:#b} | {:#b}", oldAction.sa_flags, action.sa_flags);
                 }
