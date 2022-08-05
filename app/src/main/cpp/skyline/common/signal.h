@@ -4,9 +4,6 @@
 #pragma once
 
 #include <common.h>
-#ifndef __ANDROID__
-#include <signal.h>
-#endif
 
 namespace skyline::signal {
     /**

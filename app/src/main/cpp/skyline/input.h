@@ -24,7 +24,6 @@ namespace skyline::input {
         NpadManager npad;
 #ifdef __ANDROID__ // FIX_LINUX jni
         TouchManager touch;
-#endif
 
         Input(const DeviceState &state)
             : state(state),
@@ -32,5 +31,6 @@ namespace skyline::input {
               hid(reinterpret_cast<HidSharedMemory *>(kHid->host.data())),
               npad(state, hid),
               touch(state, hid) {}
+#endif
     };
 }

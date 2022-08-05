@@ -4,6 +4,9 @@
 #pragma once
 
 #include <common.h>
+#ifndef __ANDROID__
+#define __noreturn _Noreturn
+#endif
 
 namespace skyline {
     struct DeviceState;

@@ -10,8 +10,13 @@
 #include "kernel/types/KProcess.h"
 
 namespace skyline {
+#ifdef __ANDROID__ // FIX_LINUX jvm
     DeviceState::DeviceState(kernel::OS *os, std::shared_ptr<JvmManager> jvmManager, std::shared_ptr<Settings> settings)
         : os(os), jvm(std::move(jvmManager)), settings(std::move(settings)) {
+#else
+    DeviceState::DeviceState(kernel::OS *os, std::shared_ptr<Settings> settings)
+        : os(os), settings(std::move(settings)) {
+#endif
         // We assign these later as they use the state in their constructor and we don't want null pointers
         gpu = std::make_shared<gpu::GPU>(*this);
         soc = std::make_shared<soc::SOC>(*this);

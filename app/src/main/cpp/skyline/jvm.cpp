@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 // Copyright © 2020 Skyline Team and Contributors (https://github.com/skyline-emu/)
 
+#ifdef __ANDROID__ // FIX_LINUX jvm
 #include "jvm.h"
 
 namespace skyline {
@@ -148,3 +149,4 @@ namespace skyline {
         return result;
     }
 }
+#endif
