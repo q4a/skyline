@@ -26,9 +26,11 @@ namespace skyline::kernel {
         : nativeLibraryPath(std::move(nativeLibraryPath)),
           publicAppFilesPath(std::move(publicAppFilesPath)),
           privateAppFilesPath(std::move(privateAppFilesPath)),
-      #ifdef __ANDROID__ // FIX_LINUX jvm
+#ifdef __ANDROID__ // FIX_LINUX jvm
           state(this, jvmManager, settings),
-      #endif
+#else
+          state(this, settings),
+#endif
           deviceTimeZone(std::move(deviceTimeZone)),
           assetFileSystem(std::move(assetFileSystem)),
           serviceManager(state) {}

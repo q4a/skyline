@@ -3,7 +3,7 @@
 
 #pragma once
 
-#ifdef __ANDROID__ // FIX_LINUX jni
+#ifdef __ANDROID__ // FIX_LINUX jni touch
 #include <jni.h>
 #include "shared_mem.h"
 

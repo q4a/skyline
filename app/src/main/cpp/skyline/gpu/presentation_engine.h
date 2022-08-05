@@ -25,7 +25,7 @@ namespace skyline::gpu {
 
         std::mutex mutex; //!< Synchronizes access to the surface objects
         std::condition_variable surfaceCondition; //!< Signalled when a valid Vulkan surface is available
-#ifdef __ANDROID__ // FIX_LINUX
+#ifdef __ANDROID__ // FIX_LINUX jni
         jobject jSurface{}; //!< The Java Surface object backing the ANativeWindow
 #endif
         ANativeWindow *window{}; //!< The backing Android Native Window for the surface we draw to, we keep this around to access private APIs not exposed via Vulkan
@@ -51,7 +51,7 @@ namespace skyline::gpu {
         perfetto::Track presentationTrack; //!< Perfetto track used for presentation events
 
         std::thread choreographerThread; //!< A thread for signalling the V-Sync event and measure the refresh cycle duration using AChoreographer
-#ifdef __ANDROID__ // FIX_LINUX
+#ifdef __ANDROID__ // FIX_LINUX choreographer.h
         ALooper *choreographerLooper{};
 #endif
         i64 lastChoreographerTime{}; //!< The timestamp of the last invocation of Choreographer::doFrame
@@ -83,7 +83,7 @@ namespace skyline::gpu {
         /**
          * @brief Replaces the underlying Android surface with a new one, it handles resetting the swapchain and such
          */
-#ifdef __ANDROID__ // FIX_LINUX
+#ifdef __ANDROID__ // FIX_LINUX jni
         void UpdateSurface(jobject newSurface);
 #endif
 

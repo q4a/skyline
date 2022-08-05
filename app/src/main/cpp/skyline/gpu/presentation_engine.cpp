@@ -1,8 +1,12 @@
 // SPDX-License-Identifier: MPL-2.0
 // Copyright © 2020 Skyline Team and Contributors (https://github.com/skyline-emu/)
 
+#ifdef __ANDROID__ // FIX_LINUX jni
 #include <android/native_window_jni.h>
+#endif
+#ifdef __ANDROID__ // FIX_LINUX choreographer.h
 #include <android/choreographer.h>
+#endif
 #include <common/settings.h>
 #include <common/signal.h>
 #include <jvm.h>
@@ -13,9 +17,9 @@
 #include "native_window.h"
 #include "texture/format.h"
 
-extern jint Fps;
-extern jfloat AverageFrametimeMs;
-extern jfloat AverageFrametimeDeviationMs;
+extern int32_t Fps;
+extern float AverageFrametimeMs;
+extern float AverageFrametimeDeviationMs;
 
 namespace skyline::gpu {
     using namespace service::hosbinder;
@@ -33,15 +37,19 @@ namespace skyline::gpu {
     }
 
     PresentationEngine::~PresentationEngine() {
+#ifdef __ANDROID__ // FIX_LINUX jni
         auto env{state.jvm->GetEnv()};
         if (!env->IsSameObject(jSurface, nullptr))
             env->DeleteGlobalRef(jSurface);
+#endif
 
         if (choreographerThread.joinable()) {
+#ifdef __ANDROID__ // FIX_LINUX choreographer.h
             if (choreographerLooper) {
                 choreographerStop = true;
                 ALooper_wake(choreographerLooper);
             }
+#endif
             choreographerThread.join();
         }
     }
@@ -61,11 +69,14 @@ namespace skyline::gpu {
         engine->vsyncEvent->Signal();
 
         // Post the frame callback to be triggered on the next display refresh
+#ifdef __ANDROID__ // FIX_LINUX choreographer.h
         AChoreographer_postFrameCallback64(AChoreographer_getInstance(), reinterpret_cast<AChoreographer_frameCallback64>(&ChoreographerCallback), engine);
+#endif
     }
 
     void PresentationEngine::ChoreographerThread() {
         pthread_setname_np(pthread_self(), "Skyline-Choreographer");
+#ifdef __ANDROID__ // FIX_LINUX choreographer.h
         try {
             signal::SetSignalHandler({SIGINT, SIGILL, SIGTRAP, SIGBUS, SIGFPE, SIGSEGV}, signal::ExceptionalSignalHandler);
             choreographerLooper = ALooper_prepare(0);
@@ -84,6 +95,7 @@ namespace skyline::gpu {
             else
                 std::rethrow_exception(std::current_exception());
         }
+#endif
     }
 
     NativeWindowTransform GetAndroidTransform(vk::SurfaceTransformFlagBitsKHR transform) {
@@ -167,6 +179,7 @@ namespace skyline::gpu {
         swapchainExtent = extent;
     }
 
+#ifdef __ANDROID__ // FIX_LINUX jni
     void PresentationEngine::UpdateSurface(jobject newSurface) {
         std::scoped_lock guard{mutex};
 
@@ -216,6 +229,7 @@ namespace skyline::gpu {
             window = nullptr;
         }
     }
+#endif
 
     void PresentationEngine::Present(const std::shared_ptr<Texture> &texture, i64 timestamp, u64 swapInterval, AndroidRect crop, NativeWindowScalingMode scalingMode, NativeWindowTransform transform, u64 &frameId) {
         std::unique_lock lock(mutex);
@@ -312,13 +326,13 @@ namespace skyline::gpu {
 
             i64 currentFrametime{now - frameTimestamp};
             averageFrametimeNs = weightedAverage(sampleWeight, averageFrametimeNs, currentFrametime);
-            AverageFrametimeMs = static_cast<jfloat>(averageFrametimeNs) / constant::NsInMillisecond;
+            AverageFrametimeMs = static_cast<float>(averageFrametimeNs) / constant::NsInMillisecond;
 
             i64 currentFrametimeDeviation{std::abs(averageFrametimeNs - currentFrametime)};
             averageFrametimeDeviationNs = weightedAverage(sampleWeight, averageFrametimeDeviationNs, currentFrametimeDeviation);
-            AverageFrametimeDeviationMs = static_cast<jfloat>(averageFrametimeDeviationNs) / constant::NsInMillisecond;
+            AverageFrametimeDeviationMs = static_cast<float>(averageFrametimeDeviationNs) / constant::NsInMillisecond;
 
-            Fps = static_cast<jint>(std::round(static_cast<float>(constant::NsInSecond) / static_cast<float>(averageFrametimeNs)));
+            Fps = static_cast<int32_t>(std::round(static_cast<float>(constant::NsInSecond) / static_cast<float>(averageFrametimeNs)));
 
             TRACE_EVENT_INSTANT("gpu", "Present", presentationTrack, "FrameTimeNs", now - frameTimestamp, "Fps", Fps);
 
