@@ -22,6 +22,7 @@
 #include <common/logger.h>
 #ifndef __ANDROID__
 #include <signal.h>
+#define sigev_notify_thread_id _sigev_un._tid
 #endif
 
 namespace skyline {

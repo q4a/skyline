@@ -51,8 +51,10 @@ add_subdirectory("libraries/tzcode")
 target_compile_options(tzcode PRIVATE -Wno-everything)
 
 # Oboe
-add_subdirectory("libraries/oboe")
-include_directories(SYSTEM "libraries/oboe/include")
+if (CMAKE_SYSTEM_NAME STREQUAL "Android")
+    add_subdirectory("libraries/oboe")
+    include_directories(SYSTEM "libraries/oboe/include")
+endif()
 
 # LZ4
 set(LZ4_BUILD_CLI OFF CACHE BOOL "Build LZ4 CLI" FORCE)
@@ -103,7 +105,9 @@ add_subdirectory("libraries/range")
 add_subdirectory("libraries/sirit")
 
 # libadrenotools
-add_subdirectory("libraries/adrenotools")
+if (CMAKE_SYSTEM_NAME STREQUAL "Android")
+    add_subdirectory("libraries/adrenotools")
+endif()
 
 # Build Skyline with full debugging data and -Og for debug builds
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g3 -glldb -gdwarf-5 -fno-omit-frame-pointer")
@@ -338,4 +342,8 @@ target_include_directories(skyline PRIVATE ${source_DIR}/skyline)
 target_compile_options(skyline PRIVATE -Wall -Wno-unknown-attributes -Wno-c++20-extensions -Wno-c++17-extensions -Wno-c99-designator -Wno-reorder -Wno-missing-braces -Wno-unused-variable -Wno-unused-private-field -Wno-dangling-else -Wconversion -fsigned-bitfields)
 
 target_link_libraries(skyline PRIVATE shader_recompiler)
-target_link_libraries_system(skyline android perfetto fmt lz4_static tzcode oboe vkma mbedcrypto opus Boost::intrusive Boost::container range-v3 adrenotools)
+if (CMAKE_SYSTEM_NAME STREQUAL "Android")
+    target_link_libraries_system(skyline android perfetto fmt lz4_static tzcode oboe vkma mbedcrypto opus Boost::intrusive Boost::container range-v3 adrenotools)
+else()
+    target_link_libraries_system(skyline perfetto fmt lz4_static tzcode vkma mbedcrypto opus Boost::intrusive Boost::container range-v3)
+endif()
