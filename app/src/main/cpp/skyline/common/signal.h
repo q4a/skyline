@@ -75,7 +75,7 @@ namespace skyline::signal {
      */
     void SetTlsRestorer(void *(*function)());
 
-    using SignalHandler = void (*)(int, struct siginfo *, ucontext_t *, void **);
+    using SignalHandler = void (*)(int, siginfo_t *, ucontext_t *, void **);
 
     /**
      * @brief A wrapper around Sigaction to make it easy to set a sigaction signal handler for multiple signals and also allow for thread-local signal handlers
@@ -85,7 +85,7 @@ namespace skyline::signal {
      */
     void SetSignalHandler(std::initializer_list<int> signals, SignalHandler function, bool syscallRestart = true);
 
-    inline void SetSignalHandler(std::initializer_list<int> signals, void (*function)(int, struct siginfo *, ucontext_t *), bool syscallRestart = true) {
+    inline void SetSignalHandler(std::initializer_list<int> signals, void (*function)(int, siginfo_t *, ucontext_t *), bool syscallRestart = true) {
         SetSignalHandler(signals, reinterpret_cast<SignalHandler>(function), syscallRestart);
     }
 
