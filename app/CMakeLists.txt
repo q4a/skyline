@@ -51,8 +51,10 @@ add_subdirectory("libraries/tzcode")
 target_compile_options(tzcode PRIVATE -Wno-everything)
 
 # Oboe
-add_subdirectory("libraries/oboe")
-include_directories(SYSTEM "libraries/oboe/include")
+if (CMAKE_SYSTEM_NAME STREQUAL "Android")
+    add_subdirectory("libraries/oboe")
+    include_directories(SYSTEM "libraries/oboe/include")
+endif()
 
 # LZ4
 set(LZ4_BUILD_CLI OFF CACHE BOOL "Build LZ4 CLI" FORCE)
@@ -103,7 +105,9 @@ add_subdirectory("libraries/range")
 add_subdirectory("libraries/sirit")
 
 # libadrenotools
-add_subdirectory("libraries/adrenotools")
+if (CMAKE_SYSTEM_NAME STREQUAL "Android")
+    add_subdirectory("libraries/adrenotools")
+endif()
 
 # Build Skyline with full debugging data and -Og for debug builds
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -g3 -glldb -gdwarf-5 -fno-omit-frame-pointer")

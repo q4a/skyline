@@ -22,7 +22,6 @@ namespace skyline::input {
         HidSharedMemory *hid; //!< A pointer to HID Shared Memory on the host
 
         NpadManager npad;
-#ifdef __ANDROID__ // FIX_LINUX jni
         TouchManager touch;
 
         Input(const DeviceState &state)
@@ -31,6 +30,5 @@ namespace skyline::input {
               hid(reinterpret_cast<HidSharedMemory *>(kHid->host.data())),
               npad(state, hid),
               touch(state, hid) {}
-#endif
     };
 }

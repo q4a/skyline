@@ -9,10 +9,15 @@ namespace skyline::audio {
     /**
      * @brief The Audio class is used to mix audio from all tracks
      */
+#ifdef __ANDROID__ // FIX_LINUX oboe
     class Audio : public oboe::AudioStreamCallback {
       private:
         oboe::AudioStreamBuilder builder;
         oboe::ManagedStream outputStream;
+#else
+    class Audio {
+      private:
+#endif
         std::vector<std::shared_ptr<AudioTrack>> audioTracks;
         std::mutex trackLock; //!< Synchronizes modifications to the audio tracks
 
@@ -22,11 +27,15 @@ namespace skyline::audio {
         ~Audio();
 
         void Pause() {
+#ifdef __ANDROID__ // FIX_LINUX oboe
             outputStream->requestPause();
+#endif
         }
 
         void Resume() {
+#ifdef __ANDROID__ // FIX_LINUX oboe
             outputStream->requestStart();
+#endif
         }
 
         /**
@@ -43,6 +52,7 @@ namespace skyline::audio {
          */
         void CloseTrack(std::shared_ptr<AudioTrack> &track);
 
+#ifdef __ANDROID__ // FIX_LINUX oboe
         /**
          * @brief The callback oboe uses to get audio sample data
          * @param audioStream The audio stream we are being called by
@@ -57,5 +67,6 @@ namespace skyline::audio {
          * @param error The error due to which the stream is being closed
          */
         void onErrorAfterClose(oboe::AudioStream *audioStream, oboe::Result error);
+#endif
     };
 }

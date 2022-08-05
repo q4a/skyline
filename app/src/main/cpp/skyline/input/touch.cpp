@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 // Copyright © 2020 Skyline Team and Contributors (https://github.com/skyline-emu/)
 
-#ifdef __ANDROID__ // FIX_LINUX jni touch
 #include "touch.h"
 
 namespace skyline::input {
@@ -50,4 +49,3 @@ namespace skyline::input {
         section.header.currentEntry = entryIndex;
     }
 }
-#endif

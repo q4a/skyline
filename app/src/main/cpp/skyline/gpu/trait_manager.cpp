@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: MPL-2.0
 // Copyright © 2021 Skyline Team and Contributors (https://github.com/skyline-emu/)
 
+#ifdef __ANDROID__ // adrenotools
 #include <adrenotools/bcenabler.h>
+#endif
 #include "trait_manager.h"
 
 namespace skyline::gpu {
@@ -224,6 +226,7 @@ namespace skyline::gpu {
         auto properties{physicalDevice.getProperties()};
 
         // Apply BCeNabler for Adreno devices
+#ifdef __ANDROID__ // adrenotools
         auto type{adrenotools_get_bcn_type(VK_VERSION_MAJOR(properties.driverVersion), VK_VERSION_MINOR(properties.driverVersion), properties.vendorID)};
         if (type == ADRENOTOOLS_BCN_PATCH) {
             if (adrenotools_patch_bcn(reinterpret_cast<void *>(physicalDevice.getDispatcher()->vkGetPhysicalDeviceFormatProperties)))
@@ -235,5 +238,6 @@ namespace skyline::gpu {
             Logger::Info("BCeNabler skipped, blob BCN support is present");
             bcnSupport.set();
         }
+#endif
     }
 }

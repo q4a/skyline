@@ -2,7 +2,9 @@
 // Copyright © 2021 Skyline Team and Contributors (https://github.com/skyline-emu/)
 
 #include <dlfcn.h>
+#ifdef __ANDROID__ // adrenotools
 #include <adrenotools/driver.h>
+#endif
 #include <os.h>
 #include <jvm.h>
 #include "gpu.h"
@@ -337,6 +339,7 @@ namespace skyline::gpu {
 
     static PFN_vkGetInstanceProcAddr LoadVulkanDriver(const DeviceState &state) {
         // Try turnip first, if not then fallback to regular with file redirect then plain dlopen
+#ifdef __ANDROID__ // adrenotools
         auto libvulkanHandle{adrenotools_open_libvulkan(
             RTLD_NOW,
             ADRENOTOOLS_DRIVER_CUSTOM,
@@ -359,6 +362,9 @@ namespace skyline::gpu {
             if (!libvulkanHandle)
                 libvulkanHandle = dlopen("libvulkan.so", RTLD_NOW);
         }
+#else
+        auto libvulkanHandle = dlopen("libvulkan.so", RTLD_NOW);
+#endif
 
         return reinterpret_cast<PFN_vkGetInstanceProcAddr>(dlsym(libvulkanHandle, "vkGetInstanceProcAddr"));
     }
