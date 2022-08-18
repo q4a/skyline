@@ -357,6 +357,7 @@ namespace skyline::input {
         globalTimestamp++;
     }
 
+#ifdef __ANDROID__ // FIX_LINUX jvm vibration
     constexpr jlong MsInSecond{1000}; //!< The amount of milliseconds in a single second of time
     constexpr jint AmplitudeMax{std::numeric_limits<u8>::max()}; //!< The maximum amplitude for Android Vibration APIs
 
@@ -471,4 +472,5 @@ namespace skyline::input {
         else
             VibrateDevice(manager.state.jvm, index, value);
     }
+#endif
 }

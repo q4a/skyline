@@ -3,7 +3,9 @@
 
 #pragma once
 
+#ifdef __ANDROID__ // FIX_LINUX jni touch
 #include <jni.h>
+#endif
 #include "shared_mem.h"
 
 namespace skyline::input {
@@ -13,6 +15,7 @@ namespace skyline::input {
      * @note This structure corresponds to TouchScreenStateData, see that for details
      */
     struct TouchScreenPoint {
+#ifdef __ANDROID__ // FIX_LINUX jni touch
         jint attribute;
         jint id;
         jint x;
@@ -20,6 +23,15 @@ namespace skyline::input {
         jint minor;
         jint major;
         jint angle;
+#else
+        int32_t attribute;
+        int32_t id;
+        int32_t x;
+        int32_t y;
+        int32_t minor;
+        int32_t major;
+        int32_t angle;
+#endif
     };
 
     /**

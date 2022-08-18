@@ -75,7 +75,7 @@ namespace skyline {
             /**
              * @brief A signal handler designed to cause a non-cooperative yield for preemption and higher priority threads being inserted
              */
-            static void SignalHandler(int signal, siginfo *info, ucontext *ctx, void **tls);
+            static void SignalHandler(int signal, siginfo_t *info, ucontext_t *ctx, void **tls);
 
             /**
              * @brief Checks all cores and determines the core where the supplied thread should be scheduled the earliest

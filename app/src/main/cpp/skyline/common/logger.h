@@ -57,7 +57,9 @@ namespace skyline {
 
         static void SetContext(LoggerContext *context);
 
+#ifdef __ANDROID__ // FIX_LINUX logging
         static void WriteAndroid(LogLevel level, const std::string &str);
+#endif
 
         static void Write(LogLevel level, const std::string &str);
 

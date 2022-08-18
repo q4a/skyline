@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 // Copyright © 2021 Skyline Team and Contributors (https://github.com/skyline-emu/)
 
+#ifdef __ANDROID__ // FIX_LINUX AndroidAssetFileSystem
 #include <android/asset_manager.h>
 #include "android_asset_backing.h"
 #include "android_asset_filesystem.h"
@@ -33,3 +34,4 @@ namespace skyline::vfs {
         throw exception("AndroidAssetFileSystem directories are unimplemented");
     }
 }
+#endif

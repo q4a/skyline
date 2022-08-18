@@ -92,7 +92,7 @@ namespace skyline::nce {
         TRACE_EVENT_BEGIN("guest", "Guest");
     }
 
-    void NCE::SignalHandler(int signal, siginfo *info, ucontext *ctx, void **tls) {
+    void NCE::SignalHandler(int signal, siginfo_t *info, ucontext_t *ctx, void **tls) {
         if (*tls) { // If TLS was restored then this occurred in guest code
             auto &mctx{ctx->uc_mcontext};
             const auto &state{*reinterpret_cast<ThreadContext *>(*tls)->state};
@@ -102,6 +102,7 @@ namespace skyline::nce {
                 if (state.nce->TrapHandler(reinterpret_cast<u8 *>(info->si_addr), true))
                     return;
 
+#ifdef __ANDROID__ // FIX_LINUX uc_mcontext .pc and .regs
             if (signal != SIGINT) {
                 signal::StackFrame topFrame{.lr = reinterpret_cast<void *>(ctx->uc_mcontext.pc), .next = reinterpret_cast<signal::StackFrame *>(ctx->uc_mcontext.regs[29])};
                 std::string trace{state.loader->GetStackTrace(&topFrame)};
@@ -126,6 +127,7 @@ namespace skyline::nce {
             mctx.pc = reinterpret_cast<u64>(&std::longjmp);
             mctx.regs[0] = reinterpret_cast<u64>(state.thread->originalCtx);
             mctx.regs[1] = true;
+#endif
 
             *tls = nullptr;
         } else { // If TLS wasn't restored then this occurred in host code
@@ -135,7 +137,7 @@ namespace skyline::nce {
 
     static NCE *staticNce{nullptr}; //!< A static instance of NCE for use in the signal handler
 
-    void NCE::HostSignalHandler(int signal, siginfo *info, ucontext *ctx) {
+    void NCE::HostSignalHandler(int signal, siginfo_t *info, ucontext_t *ctx) {
         if (signal == SIGSEGV) {
             if (staticNce && staticNce->TrapHandler(reinterpret_cast<u8 *>(info->si_addr), true))
                 return;
@@ -164,7 +166,9 @@ namespace skyline::nce {
 
             if (runningUnderDebugger) {
                 /* Variables for debugger, these are meant to be read and utilized by the debugger to break in user code with all registers intact */
+#ifdef __ANDROID__ // FIX_LINUX uc_mcontext .pc and .regs
                 void *pc{reinterpret_cast<void *>(ctx->uc_mcontext.pc)}; // Use 'p pc' to get the value of this and 'breakpoint set -t current -a ${value of pc}' to break in user code
+#endif
                 bool shouldReturn{true}; // Set this to false to throw an exception instead of returning
 
                 raise(SIGTRAP); // Notify the debugger if we've got a SIGSEGV as the debugger doesn't catch them by default as they might be hooked

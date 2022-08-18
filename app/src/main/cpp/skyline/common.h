@@ -20,6 +20,10 @@
 #include <common/span.h>
 #include <common/result.h>
 #include <common/logger.h>
+#ifndef __ANDROID__
+#include <signal.h>
+#define sigev_notify_thread_id _sigev_un._tid
+#endif
 
 namespace skyline {
     class Settings;
@@ -27,7 +31,9 @@ namespace skyline {
         class NCE;
         struct ThreadContext;
     }
+#ifdef __ANDROID__ // FIX_LINUX jvm
     class JvmManager;
+#endif
     namespace gpu {
         class GPU;
     }
@@ -56,12 +62,18 @@ namespace skyline {
      * @brief The state of the entire emulator is contained within this class, all objects related to emulation are tied into it
      */
     struct DeviceState {
+#ifdef __ANDROID__ // FIX_LINUX jvm
         DeviceState(kernel::OS *os, std::shared_ptr<JvmManager> jvmManager, std::shared_ptr<Settings> settings);
+#else
+        DeviceState(kernel::OS *os, std::shared_ptr<Settings> settings);
+#endif
 
         ~DeviceState();
 
         kernel::OS *os;
+#ifdef __ANDROID__ // FIX_LINUX jvm
         std::shared_ptr<JvmManager> jvm;
+#endif
         std::shared_ptr<Settings> settings;
         std::shared_ptr<loader::Loader> loader;
         std::shared_ptr<nce::NCE> nce;

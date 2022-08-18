@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 // Copyright © 2021 Skyline Team and Contributors (https://github.com/skyline-emu/)
 
+#ifdef __ANDROID__ // FIX_LINUX AndroidAssetBacking
 #include <unistd.h>
 #include <android/asset_manager.h>
 #include "android_asset_backing.h"
@@ -28,3 +29,4 @@ namespace skyline::vfs {
         return static_cast<size_t>(result);
     }
 }
+#endif

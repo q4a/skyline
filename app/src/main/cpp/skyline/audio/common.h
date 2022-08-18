@@ -3,7 +3,9 @@
 
 #pragma once
 
+#ifdef __ANDROID__ // FIX_LINUX oboe
 #include <oboe/Oboe.h>
+#endif
 #include <common.h>
 
 namespace skyline {
@@ -12,7 +14,9 @@ namespace skyline {
         constexpr u8 StereoChannelCount{2}; //!< Channels to use for stereo audio output
         constexpr u8 SurroundChannelCount{6}; //!< Channels to use for surround audio output (downsampled by backend)
         constexpr u16 MixBufferSize{960}; //!< Default size of the audren mix buffer
+#ifdef __ANDROID__ // FIX_LINUX oboe
         constexpr auto PcmFormat{oboe::AudioFormat::I16}; //!< PCM data format to use for audio output
+#endif
     }
 
     namespace audio {

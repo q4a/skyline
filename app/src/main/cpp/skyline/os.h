@@ -27,7 +27,9 @@ namespace skyline::kernel {
          * @param window The ANativeWindow object to draw the screen to
          */
         OS(
+#ifdef __ANDROID__ // FIX_LINUX jvm
             std::shared_ptr<JvmManager> &jvmManager,
+#endif
             std::shared_ptr<Settings> &settings,
             std::string publicAppFilesPath,
             std::string privateAppFilesPath,

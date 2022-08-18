@@ -11,6 +11,9 @@
 #include <xxhash.h>
 #include "base.h"
 #include "exception.h"
+#ifndef __ANDROID__ // FIX_LINUX
+#define PAGE_SIZE 4096
+#endif
 
 namespace skyline::util {
     /**

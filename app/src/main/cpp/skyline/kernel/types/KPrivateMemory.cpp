@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: MPL-2.0
 // Copyright © 2020 Skyline Team and Contributors (https://github.com/skyline-emu/)
 
+#ifdef __ANDROID__ // FIX_LINUX sharedmem.h
 #include <android/sharedmem.h>
+#endif
 #include <asm/unistd.h>
 #include <unistd.h>
 #include "KPrivateMemory.h"

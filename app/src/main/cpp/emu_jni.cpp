@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 // Copyright © 2020 Skyline Team and Contributors (https://github.com/skyline-emu/)
 
+#ifdef __ANDROID__ // FIX_LINUX jni
 #include <csignal>
 #include <pthread.h>
 #include <android/asset_manager_jni.h>
@@ -241,3 +242,4 @@ extern "C" JNIEXPORT void JNICALL Java_emu_skyline_utils_NativeSettings_updateNa
 extern "C" JNIEXPORT void JNICALL Java_emu_skyline_utils_NativeSettings_00024Companion_setLogLevel(JNIEnv *, jobject, jint logLevel) {
     skyline::Logger::configLevel = static_cast<skyline::Logger::LogLevel>(logLevel);
 }
+#endif

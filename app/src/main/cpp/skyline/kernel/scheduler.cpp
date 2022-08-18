@@ -12,7 +12,7 @@ namespace skyline::kernel {
 
     Scheduler::Scheduler(const DeviceState &state) : state(state) {}
 
-    void Scheduler::SignalHandler(int signal, siginfo *info, ucontext *ctx, void **tls) {
+    void Scheduler::SignalHandler(int signal, siginfo_t *info, ucontext_t *ctx, void **tls) {
         if (*tls) {
             TRACE_EVENT_END("guest");
             const auto &state{*reinterpret_cast<nce::ThreadContext *>(*tls)->state};

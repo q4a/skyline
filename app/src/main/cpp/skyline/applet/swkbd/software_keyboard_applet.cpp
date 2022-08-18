@@ -50,8 +50,10 @@ namespace skyline::applet::swkbd {
     }
 
     void SoftwareKeyboardApplet::SendResult() {
+#ifdef __ANDROID__ // FIX_LINUX jni
         if (dialog)
             state.jvm->CloseKeyboard(dialog);
+#endif
         PushNormalDataAndSignal(std::make_shared<service::am::ObjIStorage<OutputResult>>(state, manager, OutputResult{currentResult, currentText, config.commonConfig.isUseUtf8}));
         onAppletStateChanged->Signal();
     }
@@ -111,6 +113,7 @@ namespace skyline::applet::swkbd {
         if (!normalInputData.empty() && config.commonConfig.initialStringLength > 0)
             currentText = std::u16string(normalInputData.front()->GetSpan().subspan(config.commonConfig.initialStringOffset).cast<char16_t>().data(), config.commonConfig.initialStringLength);
 
+#ifdef __ANDROID__ // FIX_LINUX jni
         dialog = state.jvm->ShowKeyboard(*reinterpret_cast<JvmManager::KeyboardConfig *>(&config), currentText);
         if (!dialog) {
             Logger::Warn("Couldn't show keyboard dialog, using default text");
@@ -121,6 +124,7 @@ namespace skyline::applet::swkbd {
             currentResult = static_cast<CloseResult>(result.first);
             currentText = result.second;
         }
+#endif
         if (config.commonConfig.isUseTextCheck && currentResult == CloseResult::Enter) {
             PushInteractiveDataAndSignal(std::make_shared<service::am::ObjIStorage<ValidationRequest>>(state, manager, ValidationRequest{currentText, config.commonConfig.isUseUtf8}));
             validationPending = true;
@@ -146,6 +150,7 @@ namespace skyline::applet::swkbd {
                 validationPending = false;
                 SendResult();
             } else {
+#ifdef __ANDROID__ // FIX_LINUX jni
                 if (dialog) {
                     if (static_cast<CloseResult>(state.jvm->ShowValidationResult(dialog, static_cast<JvmManager::KeyboardTextCheckResult>(validationResult.result), std::u16string(validationResult.chars.data()))) == CloseResult::Enter) {
                         // Accepted on confirmation dialog
@@ -172,6 +177,7 @@ namespace skyline::applet::swkbd {
                         Logger::Debug("Guest asked to confirm default text with message: \"{}\"", message);
                     PushNormalDataAndSignal(std::make_shared<service::am::ObjIStorage<OutputResult>>(state, manager, OutputResult{CloseResult::Enter, currentText, config.commonConfig.isUseUtf8}));
                 }
+#endif
             }
         }
     }

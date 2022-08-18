@@ -61,7 +61,7 @@ namespace skyline::signal {
      * @brief A signal handler which automatically throws an exception with the corresponding signal metadata in a SignalException
      * @note A termination handler is set in this which prevents any termination from going through as to break out of 'noexcept', do not use std::terminate in a catch clause for this exception
      */
-    void ExceptionalSignalHandler(int signal, siginfo *, ucontext *context);
+    void ExceptionalSignalHandler(int signal, siginfo_t *, ucontext_t *context);
 
     /**
      * @brief Our delegator for sigaction, we need to do this due to sigchain hooking bionic's sigaction and it intercepting signals before they're passed onto userspace
@@ -75,7 +75,7 @@ namespace skyline::signal {
      */
     void SetTlsRestorer(void *(*function)());
 
-    using SignalHandler = void (*)(int, struct siginfo *, ucontext *, void **);
+    using SignalHandler = void (*)(int, siginfo_t *, ucontext_t *, void **);
 
     /**
      * @brief A wrapper around Sigaction to make it easy to set a sigaction signal handler for multiple signals and also allow for thread-local signal handlers
@@ -85,7 +85,7 @@ namespace skyline::signal {
      */
     void SetSignalHandler(std::initializer_list<int> signals, SignalHandler function, bool syscallRestart = true);
 
-    inline void SetSignalHandler(std::initializer_list<int> signals, void (*function)(int, struct siginfo *, ucontext *), bool syscallRestart = true) {
+    inline void SetSignalHandler(std::initializer_list<int> signals, void (*function)(int, siginfo_t *, ucontext_t *), bool syscallRestart = true) {
         SetSignalHandler(signals, reinterpret_cast<SignalHandler>(function), syscallRestart);
     }
 

@@ -3,6 +3,7 @@
 
 #pragma once
 
+#ifdef __ANDROID__ // FIX_LINUX
 #include "common.h"
 #include <jni.h>
 
@@ -195,3 +196,4 @@ namespace skyline {
         jmethodID getIntegerValueId;
     };
 }
+#endif

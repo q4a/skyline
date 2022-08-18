@@ -4,6 +4,7 @@
 #include "audio.h"
 
 namespace skyline::audio {
+#ifdef __ANDROID__ // FIX_LINUX oboe
     Audio::Audio(const DeviceState &state) : oboe::AudioStreamCallback() {
         builder.setChannelCount(constant::StereoChannelCount);
         builder.setSampleRate(constant::SampleRate);
@@ -21,6 +22,10 @@ namespace skyline::audio {
     Audio::~Audio() {
         outputStream->requestStop();
     }
+#else
+    Audio::Audio(const DeviceState &state) {}
+    Audio::~Audio() {}
+#endif
 
     std::shared_ptr<AudioTrack> Audio::OpenTrack(u8 channelCount, u32 sampleRate, const std::function<void()> &releaseCallback) {
         std::scoped_lock trackGuard{trackLock};
@@ -37,6 +42,7 @@ namespace skyline::audio {
         audioTracks.erase(std::remove(audioTracks.begin(), audioTracks.end(), track), audioTracks.end());
     }
 
+#ifdef __ANDROID__ // FIX_LINUX oboe
     oboe::DataCallbackResult Audio::onAudioReady(oboe::AudioStream *audioStream, void *audioData, int32_t numFrames) {
         auto destBuffer{static_cast<i16 *>(audioData)};
         auto streamSamples{static_cast<size_t>(numFrames) * static_cast<size_t>(audioStream->getChannelCount())};
@@ -74,4 +80,5 @@ namespace skyline::audio {
             outputStream->requestStart();
         }
     }
+#endif
 }

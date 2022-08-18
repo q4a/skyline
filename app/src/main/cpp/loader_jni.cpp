@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 // Copyright © 2020 Skyline Team and Contributors (https://github.com/skyline-emu/)
 
+#ifdef __ANDROID__ // FIX_LINUX jni
 #include "skyline/common/logger.h"
 #include "skyline/crypto/key_store.h"
 #include "skyline/vfs/nca.h"
@@ -70,3 +71,4 @@ extern "C" JNIEXPORT jint JNICALL Java_emu_skyline_loader_RomFile_populate(JNIEn
 
     return static_cast<jint>(skyline::loader::LoaderResult::Success);
 }
+#endif

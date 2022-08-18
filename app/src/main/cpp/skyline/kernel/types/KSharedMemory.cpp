@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: MPL-2.0
 // Copyright © 2020 Skyline Team and Contributors (https://github.com/skyline-emu/)
 
+#ifdef __ANDROID__ // FIX_LINUX sharedmem.h
 #include <android/sharedmem.h>
+#endif
 #include <unistd.h>
 #include <asm/unistd.h>
 #include "KSharedMemory.h"
@@ -11,7 +13,11 @@ namespace skyline::kernel::type {
     KSharedMemory::KSharedMemory(const DeviceState &state, size_t size, memory::MemoryState memState, KType type)
         : memoryState(memState),
           KMemory(state, type, span<u8>{}) {
+#ifdef __ANDROID__ // FIX_LINUX sharedmem.h
         fd = ASharedMemory_create(type == KType::KSharedMemory ? "HOS-KSharedMemory" : "HOS-KTransferMemory", size);
+#else
+        fd = -1;
+#endif
         if (fd < 0)
             throw exception("An error occurred while creating shared memory: {}", fd);
 

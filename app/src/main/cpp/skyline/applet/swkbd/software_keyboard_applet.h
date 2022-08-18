@@ -9,7 +9,9 @@
 #include "software_keyboard_config.h"
 
 namespace skyline::applet::swkbd {
+#ifdef __ANDROID__ // FIX_LINUX jvm
     static_assert(sizeof(KeyboardConfigVB) == sizeof(JvmManager::KeyboardConfig));
+#endif
 
     /**
      * @url https://switchbrew.org/wiki/Software_Keyboard
@@ -78,7 +80,9 @@ namespace skyline::applet::swkbd {
         std::u16string currentText{};
         CloseResult currentResult{};
 
+#ifdef __ANDROID__ // FIX_LINUX jni
         jobject dialog{};
+#endif
 
         void SendResult();
 

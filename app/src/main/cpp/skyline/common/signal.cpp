@@ -82,9 +82,10 @@ namespace skyline::signal {
         }
     }
 
-    void ExceptionalSignalHandler(int signal, siginfo *info, ucontext *context) {
+    void ExceptionalSignalHandler(int signal, siginfo_t *info, ucontext_t *context) {
         SignalException signalException;
         signalException.signal = signal;
+#ifdef __ANDROID__ // FIX_LINUX uc_mcontext .pc and .regs
         signalException.pc = reinterpret_cast<void *>(context->uc_mcontext.pc);
         if (signal == SIGSEGV)
             signalException.fault = info->si_addr;
@@ -98,6 +99,7 @@ namespace skyline::signal {
 
         SignalExceptionPtr = std::make_exception_ptr(signalException);
         context->uc_mcontext.pc = reinterpret_cast<u64>(&ExceptionThrow);
+#endif
 
         std::set_terminate(TerminateHandler);
 
@@ -130,7 +132,7 @@ namespace skyline::signal {
     }
 
     struct DefaultSignalHandler {
-        void (*function)(int, struct siginfo *, void *){};
+        void (*function)(int, siginfo_t *, void *){};
 
         ~DefaultSignalHandler();
     };
@@ -155,7 +157,7 @@ namespace skyline::signal {
     thread_local std::array<SignalHandler, NSIG> ThreadSignalHandlers{};
 
     __attribute__((no_stack_protector)) // Stack protector stores data in TLS at the function epilogue and verifies it at the prolog, we cannot allow writes to guest TLS and may switch to an alternative TLS during the signal handler and have disabled the stack protector as a result
-    void ThreadSignalHandler(int signal, siginfo *info, ucontext *context) {
+    void ThreadSignalHandler(int signal, siginfo_t *info, ucontext_t *context) {
         void *tls{}; // The TLS value prior to being restored if it is
         if (TlsRestorer)
             tls = TlsRestorer();
@@ -177,8 +179,12 @@ namespace skyline::signal {
         static std::array<std::once_flag, NSIG> signalHandlerOnce{};
 
         struct sigaction action{
-            .sa_sigaction = reinterpret_cast<void (*)(int, siginfo *, void *)>(ThreadSignalHandler),
-            .sa_flags = SA_SIGINFO | SA_EXPOSE_TAGBITS | (syscallRestart ? SA_RESTART : 0) | SA_ONSTACK,
+            .sa_sigaction = reinterpret_cast<void (*)(int, siginfo_t *, void *)>(ThreadSignalHandler),
+            .sa_flags = SA_SIGINFO
+#ifdef __ANDROID__ // FIX_LINUX
+                    | SA_EXPOSE_TAGBITS
+#endif
+                    | (syscallRestart ? SA_RESTART : 0) | SA_ONSTACK,
         };
 
         for (int signal : signals) {
@@ -186,13 +192,19 @@ namespace skyline::signal {
                 struct sigaction oldAction;
                 Sigaction(signal, &action, &oldAction);
                 if (oldAction.sa_flags) {
+#ifdef __ANDROID__ // FIX_LINUX
                     oldAction.sa_flags &= ~SA_UNSUPPORTED; // Mask out kernel not supporting old sigaction() bits
-                    oldAction.sa_flags |= SA_SIGINFO | SA_EXPOSE_TAGBITS | SA_RESTART | SA_ONSTACK; // Intentionally ignore these flags for the comparison
+#endif
+                    oldAction.sa_flags |= SA_SIGINFO
+#ifdef __ANDROID__ // FIX_LINUX
+                    | SA_EXPOSE_TAGBITS
+#endif
+                    | SA_RESTART | SA_ONSTACK; // Intentionally ignore these flags for the comparison
                     if (oldAction.sa_flags != (action.sa_flags | SA_RESTART))
                         throw exception("Old sigaction flags aren't equivalent to the replaced signal: {:#b} | {:#b}", oldAction.sa_flags, action.sa_flags);
                 }
 
-                DefaultSignalHandlers.at(static_cast<size_t>(signal)).function = (oldAction.sa_flags & SA_SIGINFO) ? oldAction.sa_sigaction : reinterpret_cast<void (*)(int, struct siginfo *, void *)>(oldAction.sa_handler);
+                DefaultSignalHandlers.at(static_cast<size_t>(signal)).function = (oldAction.sa_flags & SA_SIGINFO) ? oldAction.sa_sigaction : reinterpret_cast<void (*)(int, siginfo_t *, void *)>(oldAction.sa_handler);
             });
             ThreadSignalHandlers.at(static_cast<size_t>(signal)) = function;
         }

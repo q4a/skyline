@@ -2,7 +2,9 @@
 // Copyright © 2021 Skyline Team and Contributors (https://github.com/skyline-emu/)
 
 #include <dlfcn.h>
+#ifdef __ANDROID__ // adrenotools
 #include <adrenotools/driver.h>
+#endif
 #include <os.h>
 #include <jvm.h>
 #include "gpu.h"
@@ -11,7 +13,11 @@ namespace skyline::gpu {
     static vk::raii::Instance CreateInstance(const DeviceState &state, const vk::raii::Context &context) {
         vk::ApplicationInfo applicationInfo{
             .pApplicationName = "Skyline",
+#ifdef __ANDROID__ // FIX_LINUX jvm
             .applicationVersion = static_cast<uint32_t>(state.jvm->GetVersionCode()), // Get the application version from JNI
+#else
+            .applicationVersion = 0,
+#endif
             .pEngineName = "FTX1", // "Fast Tegra X1"
             .apiVersion = VkApiVersion,
         };
@@ -333,6 +339,7 @@ namespace skyline::gpu {
 
     static PFN_vkGetInstanceProcAddr LoadVulkanDriver(const DeviceState &state) {
         // Try turnip first, if not then fallback to regular with file redirect then plain dlopen
+#ifdef __ANDROID__ // adrenotools
         auto libvulkanHandle{adrenotools_open_libvulkan(
             RTLD_NOW,
             ADRENOTOOLS_DRIVER_CUSTOM,
@@ -355,6 +362,9 @@ namespace skyline::gpu {
             if (!libvulkanHandle)
                 libvulkanHandle = dlopen("libvulkan.so", RTLD_NOW);
         }
+#else
+        auto libvulkanHandle = dlopen("libvulkan.so", RTLD_NOW);
+#endif
 
         return reinterpret_cast<PFN_vkGetInstanceProcAddr>(dlsym(libvulkanHandle, "vkGetInstanceProcAddr"));
     }
